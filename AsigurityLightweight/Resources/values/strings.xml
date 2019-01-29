@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Asigurity</string>
+    <string name="action_settings">Settings</string>
+  <string name="LoadingBarText">Cargando</string>
+</resources>

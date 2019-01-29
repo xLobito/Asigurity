@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent">
+	<ImageView
+		android:src="@drawable/asigurity"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:id="@+id/imageView1"
+		android:layout_marginRight="50.0dp"
+		android:layout_marginTop="50.0dp"
+		android:layout_marginBottom="320.0dp"
+		android:layout_marginLeft="50.0dp" 
+	/>
+	<ProgressBar
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:id="@+id/progressBar1"
+		android:layout_centerVertical="true"
+		android:layout_marginLeft="150dip"
+		android:maxHeight="320dip"
+		android:minHeight="710dip"
+		android:minWidth="80dip"
+		android:maxWidth="80dip"
+		android:layout_marginTop="100.0dp"
+		android:indeterminateTint="@android:color/black"
+	/>
+</android.support.design.widget.CoordinatorLayout>
