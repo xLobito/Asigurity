@@ -5,6 +5,7 @@ using Android.App;
 using Android.Content;
 using Android.Content.PM;
 using AsigurityLightweight.Interfaces;
+using AsigurityLightweight.Utilities;
 
 namespace AsigurityLightweight.Implementations
 {
@@ -23,19 +24,19 @@ namespace AsigurityLightweight.Implementations
                 switch (ApplicationName)
                 {
                     case "Spotify":
-                        OpenApplicationOnIntent(OpenApplicationIntent, "com.spotify.music");
+                        OpenApplicationOnIntent("com.spotify.music");
                         break;
                     case "Facebook":
-                        OpenApplicationOnIntent(OpenApplicationIntent, "com.facebook.lite", "com.facebook.katana");
+                        OpenApplicationOnIntent("com.facebook.lite", "com.facebook.katana");
                         break;
                     case "WhatsApp":
-                        OpenApplicationOnIntent(OpenApplicationIntent, "com.whatsapp");
+                        OpenApplicationOnIntent("com.whatsapp");
                         break;
                     case "Telegram":
-                        OpenApplicationOnIntent(OpenApplicationIntent, "org.telegram.messenger");
+                        OpenApplicationOnIntent("org.telegram.messenger");
                         break;
                     case "Instagram":
-                        OpenApplicationOnIntent(OpenApplicationIntent, "com.instagram.android");
+                        OpenApplicationOnIntent("com.instagram.android");
                         break;
                     default:
                         OpenSpecificApplicationOnIntent(OpenApplicationIntent, ApplicationName);
@@ -47,16 +48,17 @@ namespace AsigurityLightweight.Implementations
                 Speak("No se ha podido abrir ninguna aplicación. Por favor, reinténtelo");
             }
         }
-        private void OpenApplicationOnIntent(Intent OpenApplicationIntent, string PackageName)
+        private void OpenApplicationOnIntent(string PackageName)
         {
-            OpenApplicationIntent = Application.Context.PackageManager.GetLaunchIntentForPackage(PackageName);
+            Intent OpenApplicationIntent = Application.Context.PackageManager.GetLaunchIntentForPackage(PackageName);
 
             if(OpenApplicationIntent == null)
             {
                 FrontPageActivity.Instance.RunOnUiThread(() => Speak("Abriendo Play Store"));
+                OpenApplicationIntent = new Intent(Intent.ActionView);
                 OpenApplicationIntent.AddFlags(ActivityFlags.NewTask);
                 OpenApplicationIntent.AddFlags(ActivityFlags.ClearTask);
-                OpenApplicationIntent.SetData(Android.Net.Uri.Parse("market://details?id=" + PackageName));
+                OpenApplicationIntent.SetData(Android.Net.Uri.Parse(GooglePlayStoreUri.BuildGooglePlayStoreRedirect(PackageName)));
                 Application.Context.StartActivity(OpenApplicationIntent);
             }
             else
@@ -67,9 +69,9 @@ namespace AsigurityLightweight.Implementations
             }
         }
 
-        private void OpenApplicationOnIntent(Intent OpenApplicationIntent, string PackageNamePrimary, string PackageNameSecondary)
+        private void OpenApplicationOnIntent(string PackageNamePrimary, string PackageNameSecondary)
         {
-            OpenApplicationIntent = Application.Context.PackageManager.GetLaunchIntentForPackage(PackageNamePrimary);
+            Intent OpenApplicationIntent = Application.Context.PackageManager.GetLaunchIntentForPackage(PackageNamePrimary);
 
             if(OpenApplicationIntent == null)
             {
@@ -79,7 +81,7 @@ namespace AsigurityLightweight.Implementations
                     FrontPageActivity.Instance.RunOnUiThread(() => Speak("Abriendo Play Store"));
                     OpenApplicationIntent = new Intent(Intent.ActionView);
                     OpenApplicationIntent.AddFlags(ActivityFlags.NewTask);
-                    OpenApplicationIntent.SetData(Android.Net.Uri.Parse("market://details?id=" + PackageNameSecondary));
+                    OpenApplicationIntent.SetData(Android.Net.Uri.Parse(GooglePlayStoreUri.BuildGooglePlayStoreRedirect(PackageNameSecondary)));
                     Application.Context.StartActivity(OpenApplicationIntent);
                 }
                 else
@@ -119,7 +121,7 @@ namespace AsigurityLightweight.Implementations
                     OpenApplicationIntent.AddFlags(ActivityFlags.ClearTask);
                     if (ApplicationName.Contains(" "))
                         ApplicationName = ApplicationName.Replace(" ", "%20");
-                    OpenApplicationIntent.SetData(Android.Net.Uri.Parse("market://search?q=" + char.ToUpper(ApplicationName[0]) + ApplicationName.Substring(1)));
+                    OpenApplicationIntent.SetData(Android.Net.Uri.Parse(GooglePlayStoreUri.BuildGooglePlayStoreSearchRedirect(char.ToUpper(ApplicationName[0]) + ApplicationName.Substring(1))));
                     Application.Context.StartActivity(OpenApplicationIntent);
                 }
             }
@@ -127,7 +129,6 @@ namespace AsigurityLightweight.Implementations
             {
                 Speak("Ha ocurrido un error al abrir la aplicación");
             }
-            return;
         }
 
         private void RetrieveInstalledApplications()

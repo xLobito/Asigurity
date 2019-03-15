@@ -259,3 +259,11 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
+.sonarqube/conf/SonarQubeAnalysisConfig.xml
+.scannerwork/.sonar_lock
+.sonarqube/conf/vbnet/SonarLint.xml
+.sonarqube/conf/SonarQubeRoslyn-cs.ruleset
+.sonarqube/conf/SonarQubeRoslyn-cs-test.ruleset
+.sonarqube/conf/SonarQubeRoslyn-vbnet.ruleset
+.sonarqube/conf/SonarQubeRoslyn-vbnet-test.ruleset
+.sonarqube/conf/cs/SonarLint.xml

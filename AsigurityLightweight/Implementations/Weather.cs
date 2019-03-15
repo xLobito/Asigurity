@@ -14,8 +14,8 @@ namespace AsigurityLightweight.Implementations
         {
             string WeatherKey = "99e2eb1ae41b89b6fe1ccd5be89886df";
             string WeatherQuery = "https://api.openweathermap.org/data/2.5/forecast?q=" + CityName + ",cl&appid=" + WeatherKey + "&units=metric&lang=es";
-            dynamic WeatherResultQuery = null;
-            WeatherStats WeatherDailyForecast = null;
+            dynamic WeatherResultQuery;
+            WeatherStats WeatherDailyForecast;
 
             WeatherResultQuery = await GetWeatherFromService(WeatherQuery).ConfigureAwait(false);
             if (WeatherResultQuery["list"] != null)

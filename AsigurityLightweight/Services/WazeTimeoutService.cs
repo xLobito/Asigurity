@@ -9,7 +9,6 @@ namespace AsigurityLightweight.Services
     [Service(Enabled = true, Name = "com.asigurity.timeout")]
     public class WazeTimeoutService : Service
     {
-        Timer WazeTimer = null;
         public override IBinder OnBind(Intent intent)
         {
             return null;
@@ -24,6 +23,7 @@ namespace AsigurityLightweight.Services
 
         private void EnableWazeTimeout()
         {
+            Timer WazeTimer = null;
             WazeTimer = new Timer(15);
             WazeTimer.Elapsed += WazeTimer_Elapsed;
             WazeTimer.Interval = 15000;
@@ -36,7 +36,7 @@ namespace AsigurityLightweight.Services
             Intent RestoreAsigurityIntent = new Intent(this, typeof(MainActivity));
             RestoreAsigurityIntent.AddFlags(ActivityFlags.NewTask);
             StartActivity(RestoreAsigurityIntent);
-            this.StopSelf();
+            StopSelf();
         }
     }
 }

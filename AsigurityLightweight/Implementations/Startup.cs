@@ -20,7 +20,7 @@ namespace AsigurityLightweight.Implementations
         private Timer progressTimer;
         private int countSeconds;
         private ProgressBar _progressBar;
-        private object lockThread = new object();
+        private readonly object lockThread = new object();
 
         public void Loading(ProgressBar progressBar)
         {

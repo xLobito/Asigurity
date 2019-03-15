@@ -14,7 +14,6 @@ namespace AsigurityLightweight.Activities
     [Activity(Label = "WeatherActivity")]
     public class WeatherActivity : AppCompatActivity
     {
-        private string CityName;
         TextView SelectCity { get; set; }
         TextView CityField { get; set; }
         TextView DetailsField { get; set; }
@@ -25,13 +24,9 @@ namespace AsigurityLightweight.Activities
         TextView UpdatedField { get; set; }
         WeatherStats WeatherStats { get; set; }
 
-        public WeatherActivity()
-        {
-            CityName = string.Empty;
-        }
-
         protected override void OnCreate(Bundle savedInstanceState)
         {
+            string CityName = string.Empty;
             Timer updateTimer = new Timer(1000);
             Timer activityLimit = new Timer(4000);
 

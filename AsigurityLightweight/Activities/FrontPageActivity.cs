@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Android;
 using Android.App;
@@ -13,6 +14,7 @@ using Android.Util;
 using Android.Views;
 using Android.Widget;
 using AsigurityLightweight.Activities;
+using AsigurityLightweight.Exceptions;
 using AsigurityLightweight.Implementations;
 using AsigurityLightweight.Services;
 using AsigurityLightweight.Utilities;
@@ -66,9 +68,14 @@ namespace AsigurityLightweight
 
         private async void FabOnClick(object sender, EventArgs e)
         {
+            await ProcessCarModeOrInteractive();
+        }
+
+        private async Task ProcessCarModeOrInteractive()
+        {
             string SpeechResult = string.Empty;
 
-            if(CheckSelfPermission(Manifest.Permission.RecordAudio) == Permission.Granted)
+            if (CheckSelfPermission(Manifest.Permission.RecordAudio) == Permission.Granted)
             {
                 Toast.MakeText(this, "El micrófono está activo", ToastLength.Short).Show();
             }
@@ -85,17 +92,20 @@ namespace AsigurityLightweight
                 if (char.IsLower(SpeechResult[0]))
                     SpeechResult = char.ToUpperInvariant(SpeechResult[0]) + SpeechResult.Substring(1);
                 if (!SpeechResult.Contains(" "))
-                    RecognizeCommandInteractive(SpeechResult, Speech, SpeechRecognizer);
+                    await RecognizeCommandInteractive(SpeechResult, Speech, SpeechRecognizer);
                 else if (SpeechResult.Equals("Activar modo auto", StringComparison.OrdinalIgnoreCase))
                     SwitchCarMode();
                 else if (SpeechResult.Length == 0)
-                    throw new Exception("No se ha podido realizar ninguna acción"); /* TODO - Develop new Exception Handling. Necesita ser cambiado */
+                    throw new CommandNotRecognizedException("No se ha podido realizar ninguna acción");
                 else
                 {
-                    RecognizeCommand(SpeechResult, null, null);
+                    /**
+                     * await RecognizeCommand(SpeechResult, null, null);
+                     */
+                    await RecognizeCommand();
                 }
             }
-            catch(Exception)
+            catch (Exception)
             {
                 Speech.Speak("No se ha podido realizar ninguna acción");
             }
@@ -122,10 +132,13 @@ namespace AsigurityLightweight
             });
         }
 
-        private void Imb_Click(object sender, EventArgs e)
+        private async void Imb_Click(object sender, EventArgs e)
         {
-            string SpeechResult = string.Empty;
+            await ProcessCommand();   
+        }
 
+        private async Task ProcessCommand()
+        {
             if (CheckSelfPermission(Manifest.Permission.RecordAudio) == Permission.Granted)
             {
                 Toast.MakeText(this, "El micrófono está activo", ToastLength.Short).Show();
@@ -136,7 +149,10 @@ namespace AsigurityLightweight
             }
             try
             {
-                RecognizeCommand(SpeechResult, Speech, SpeechRecognizer);
+                /** 
+                 * await RecognizeCommand(SpeechResult, Speech, SpeechRecognizer);
+                 */
+                await RecognizeCommand();
             }
             catch (Exception)
             {
@@ -172,12 +188,11 @@ namespace AsigurityLightweight
             });
         }
 
-        private async void RecognizeCommandInteractive(string SpeechResult, TextToSpeech Speech, Speech SpeechRecognizer)
+        private async Task RecognizeCommandInteractive(string SpeechResult, TextToSpeech Speech, Speech SpeechRecognizer)
         {
             Dialer CallContact = null;
             OpenApplication RequestOpenApp = null;
             string NewSpeechResult = string.Empty;
-            object LockThread = new object();
 
             switch(SpeechResult)
             {
@@ -211,13 +226,13 @@ namespace AsigurityLightweight
             }
         }
 
-        private async void RecognizeCommand(string SpeechResult, TextToSpeech Speech1, Speech SpeechRecognizer2)
+        private async Task RecognizeCommand()
         {
             Dialer CallContact = null;
             OpenApplication RequestOpenApp = null;
             string Cmd = string.Empty;
             string Phrase = string.Empty;
-            string[] CmdArray = { string.Empty };
+            string[] CmdArray;
 
             try
             {
@@ -228,7 +243,10 @@ namespace AsigurityLightweight
                 if (CmdArray.Length > 2)
                 {
                     for (int i = 1; i < CmdArray.Length; i++)
-                        Phrase += (i == 1) ? CmdArray[1] : (" " + CmdArray[i]);
+                        Phrase = (i == 1) ? new StringBuilder(CmdArray[1]).ToString() : new StringBuilder(" " + CmdArray[i]).ToString();
+                        /** 
+                         * Phrase += (i == 1) ? CmdArray[1] : (" " + CmdArray[i]);
+                         */
                 }
                 else
                     Phrase += CmdArray[0];
@@ -306,7 +324,7 @@ namespace AsigurityLightweight
                             string Place = string.Empty;
                             string LatitudeEnd = string.Empty;
                             string LongitudeEnd = string.Empty;
-                            string[] WazeUriArray = { "https://waze.com/ul?favorite=portal&navigate=yes", "https://waze.com/ul?favorite=automovil&navigate=yes", "https://waze.com/ul?favorite=home&navigate=yes" };
+                            const string WazeDefaultAddress = "waze://?ll=";
                             GeolocationRequest Accuracy = null;
                             Location RetrievedLocation = null;
                             Placemark Position = null;
@@ -322,21 +340,21 @@ namespace AsigurityLightweight
                                 /* Switch case */
                                 if(string.Equals(Place, "Portal", StringComparison.OrdinalIgnoreCase))
                                 {
-                                    StartNavigationIntent = new Intent(Intent.ActionView, Android.Net.Uri.Parse(WazeUriArray[0]));
+                                    StartNavigationIntent = new Intent(Intent.ActionView, Android.Net.Uri.Parse(WazeUri.BuildFavoriteWazeUri("Portal")));
                                     StartNavigationIntent.SetPackage("com.waze");
                                     StartService(new Intent(this, typeof(WazeTimeoutService)));
                                     StartActivity(StartNavigationIntent);
                                 }
                                 else if(string.Equals("Automovil", Normalization.RemoveAccents(Place), StringComparison.OrdinalIgnoreCase))
                                 {
-                                    StartNavigationIntent = new Intent(Intent.ActionView, Android.Net.Uri.Parse(WazeUriArray[1]));
+                                    StartNavigationIntent = new Intent(Intent.ActionView, Android.Net.Uri.Parse(WazeUri.BuildFavoriteWazeUri("Automovil")));
                                     StartNavigationIntent.SetPackage("com.waze");
                                     StartService(new Intent(this, typeof(WazeTimeoutService)));
                                     StartActivity(StartNavigationIntent);
                                 }
                                 else if(string.Equals(Place, "Casa", StringComparison.OrdinalIgnoreCase))
                                 {
-                                    StartNavigationIntent = new Intent(Intent.ActionView, Android.Net.Uri.Parse(WazeUriArray[2]));
+                                    StartNavigationIntent = new Intent(Intent.ActionView, Android.Net.Uri.Parse(WazeUri.BuildFavoriteWazeUri("Casa")));
                                     StartNavigationIntent.SetPackage("com.waze");
                                     StartService(new Intent(this, typeof(WazeTimeoutService)));
                                     StartActivity(StartNavigationIntent);
@@ -353,7 +371,9 @@ namespace AsigurityLightweight
                                         if(RetrievedLocation != null)
                                         {
                                             Positions = await Geocoding.GetPlacemarksAsync(RetrievedLocation.Latitude, RetrievedLocation.Longitude);
+#pragma warning disable S1854 // Dead stores should be removed
                                             Position = Positions?.FirstOrDefault();
+#pragma warning restore S1854 // Dead stores should be removed
                                         }
                                         string[] ArrayDistances = new string[Locations.Count()];
                                         for (int i = 0; i < Locations.Count(); i++)
@@ -363,10 +383,10 @@ namespace AsigurityLightweight
                                         ADBuilder.SetTitle("Distancias Resultantes");
                                         ADBuilder.SetItems(ArrayDistances, (sender, args) =>
                                         {
-                                            /* Todo */
+                                            /* Falta completar */
                                             LatitudeEnd = LocationsList[args.Which].Latitude.ToString().Replace(",", ".");
                                             LongitudeEnd = LocationsList[args.Which].Longitude.ToString().Replace(",", ".");
-                                            StartNavigationIntent = new Intent(Intent.ActionView, Android.Net.Uri.Parse("waze://?ll=" + LatitudeEnd + "," + LongitudeEnd + "&navigate=yes"));
+                                            StartNavigationIntent = new Intent(Intent.ActionView, Android.Net.Uri.Parse(WazeDefaultAddress + LatitudeEnd + "," + LongitudeEnd + "&navigate=yes"));
                                             StartNavigationIntent.SetPackage("com.waze");
                                             StartService(new Intent(this, typeof(WazeTimeoutService)));
                                             StartActivity(StartNavigationIntent);
@@ -385,7 +405,7 @@ namespace AsigurityLightweight
                             /* Si no existe el contacto (String pattern matching. Usar Levenshtein Distance para evaluar similtud < 0.75 */
                             string ContactName = string.Empty;
                             string ContactNumber = string.Empty;
-                            string MessageText = "Realizando prueba. Envío automático";
+                            string MessageText = string.Empty;
                             Intent SendMessageIntent = null;
 
                             Speech.Speak("Nombre del contacto");
@@ -431,7 +451,7 @@ namespace AsigurityLightweight
         }
 
         #region Unused
-        /*
+        /**
         private async void Fab2_Click(object sender, EventArgs e)
         {
             Speech SpeechRecognizer = new Speech();
@@ -477,19 +497,13 @@ namespace AsigurityLightweight
 
         public override void OnRequestPermissionsResult(int requestCode, string[] permissions, [GeneratedEnum] Permission[] grantResults)
         {
-            if(requestCode == MicrophoneRequestCode)
+            if((requestCode == MicrophoneRequestCode) && grantResults.Length == 1 && grantResults[0] == Permission.Granted)
             {
-                if(grantResults.Length == 1 && grantResults[0] == Permission.Granted)
-                {
-                    Toast.MakeText(this, "Permisos de micrófono están activos", ToastLength.Short).Show();
-                }
+                Toast.MakeText(this, "Permisos de micrófono están activos", ToastLength.Short).Show();
             }
-            else if(requestCode == ContactDialRequestCode)
+            else if((requestCode == ContactDialRequestCode) && (grantResults.Length == 1 && grantResults[0] == Permission.Granted))
             {
-                if(grantResults.Length == 1 && grantResults[0] == Permission.Granted)
-                {
-                    Toast.MakeText(this, "Permisos para leer contactos y llamadas están activos", ToastLength.Short).Show();
-                }
+                Toast.MakeText(this, "Permisos para leer contactos y llamadas están activos", ToastLength.Short).Show();
             }
         }
     }

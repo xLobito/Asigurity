@@ -13,14 +13,19 @@ namespace AsigurityLightweight.Implementations
 {
     public class Speech : Java.Lang.Object, ISpeech, IRecognitionListener
     {
-        public static AutoResetEvent AutoResetEvent = new AutoResetEvent(false);
-        public static string SpeechText = string.Empty;
-        private SpeechRecognizer SpeechRecognizer = null;
-        private Intent SpeechIntent = null;
-        //private const int SpeechIntentRequest = 10;
+        public static readonly AutoResetEvent AutoResetEvent = new AutoResetEvent(false);
+#pragma warning disable S1450 // Private fields only used as local variables in methods should become local variables
+        private string SpeechText = string.Empty;
+#pragma warning restore S1450 // Private fields only used as local variables in methods should become local variables
+        /**
+          * private const int SpeechIntentRequest = 10;
+          */
 
         public async Task<string> SpeechToText()
         {
+            SpeechRecognizer SpeechRecognizer;
+            Intent SpeechIntent;
+
             try
             {
                 SpeechRecognizer = SpeechRecognizer.CreateSpeechRecognizer(Application.Context);
